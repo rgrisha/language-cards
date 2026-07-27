@@ -1,9 +1,11 @@
 package com.languagecards.backend.web;
 
 import com.languagecards.backend.service.CsvImportService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -22,7 +24,11 @@ public class WordImportController {
     public ResponseEntity<Map<String, Object>> importWords(
             @RequestParam("file") MultipartFile file,
             @RequestParam("language") String language) throws IOException {
-        int imported = csvImportService.importCsv(file.getInputStream(), language);
-        return ResponseEntity.ok(Map.of("imported", imported));
+        try {
+            int imported = csvImportService.importCsv(file.getInputStream(), language);
+            return ResponseEntity.ok(Map.of("imported", imported));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }

@@ -66,15 +66,14 @@ public class CardBufferService {
     }
 
     private void generateOne(Word word) {
-        SentenceGenerationService.GeneratedContent generated =
-                sentenceGenerationService.generate(word.getText(), word.getLanguage(), word.getTranslationEn());
+        String sentenceText = sentenceGenerationService.generate(word.getText(), word.getLanguage());
 
         SampleSentence sentence = new SampleSentence();
         sentence.setWordId(word.getId());
-        sentence.setText(generated.sentence());
+        sentence.setText(sentenceText);
         sentence = sampleSentenceRepository.save(sentence);
 
-        byte[] audio = textToSpeechService.synthesize(generated.sentence());
+        byte[] audio = textToSpeechService.synthesize(sentenceText);
         String fileName = sentence.getId() + ".wav";
         try {
             Files.createDirectories(audioPath);
@@ -87,10 +86,5 @@ public class CardBufferService {
         audioFile.setSentenceId(sentence.getId());
         audioFile.setFilePath(audioPath.resolve(fileName).toString());
         audioFileRepository.save(audioFile);
-
-        if (word.getTranslationEn() == null && generated.translationEn() != null) {
-            word.setTranslationEn(generated.translationEn());
-            wordRepository.save(word);
-        }
     }
 }

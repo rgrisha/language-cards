@@ -20,6 +20,28 @@ services:
     image: ${IMAGE_NAMESPACE:-language-cards}-piper:latest
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    environment:
+      SENTENCE_PROVIDER: ${SENTENCE_PROVIDER:-claude}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-hf.co/croissantllm/CroissantLLMChat-v0.1-GGUF:Q4_K_M}
+    volumes:
+      - ollama-data:/root/.ollama
+    # Auto-pulls the model on startup, but only when SENTENCE_PROVIDER=croissant —
+    # otherwise Claude-only users pay no cost for this service being present.
+    # ollama pull is idempotent: once cached in the ollama-data volume, later
+    # restarts just do a quick local check instead of re-downloading.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        if [ "$$SENTENCE_PROVIDER" = "croissant" ]; then
+          until ollama list >/dev/null 2>&1; do sleep 1; done
+          ollama pull "$$OLLAMA_MODEL" || echo "Failed to pull $$OLLAMA_MODEL, continuing without it"
+        fi
+        wait
+
   backend:
     build:
       context: .
@@ -38,7 +60,10 @@ services:
       DB_USER: ${POSTGRES_USER:-language_cards}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       PIPER_BASE_URL: http://piper:5000
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      SENTENCE_PROVIDER: ${SENTENCE_PROVIDER:-claude}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-hf.co/croissantllm/CroissantLLMChat-v0.1-GGUF:Q4_K_M}
       AUDIO_PATH: /data/audio
     volumes:
       - audio-data:/data/audio
@@ -48,3 +73,4 @@ services:
 volumes:
   postgres-data:
   audio-data:
+  ollama-data:

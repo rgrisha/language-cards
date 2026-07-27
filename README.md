@@ -5,15 +5,19 @@ an AI-generated sample sentence, and TTS audio of that sentence. The backend
 keeps a small buffer of pre-generated sentence+audio pairs per word so the
 "next" card is always ready instantly.
 
-- **Backend**: Java 21 / Spring Boot, Postgres, Claude API (sentence
-  generation), self-hosted Piper (TTS)
+- **Backend**: Java 21 / Spring Boot, Postgres, self-hosted Piper (TTS), and a
+  choice of sentence-generation provider: Claude API or a self-hosted
+  CroissantLLM (via Ollama)
 - **Frontend**: React + TypeScript (Vite), served by the backend
 - **Deployment**: Docker Compose; images built in CI and published to GHCR
 
 ## Prerequisites
 
 - Docker + Docker Compose
-- An Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
+- If using Claude (the default): an Anthropic API key
+  ([console.anthropic.com](https://console.anthropic.com))
+- If using CroissantLLM instead: no API key needed, just more disk/RAM for
+  Ollama's model (see below)
 
 ## Local setup
 
@@ -25,18 +29,37 @@ docker compose up --build
 
 The app is served at `http://localhost:8080`.
 
+### Using CroissantLLM instead of Claude
+
+Set `SENTENCE_PROVIDER=croissant` in `.env` (no `ANTHROPIC_API_KEY` needed) and
+start the stack as usual:
+
+```bash
+docker compose up -d
+```
+
+The `ollama` service pulls the model automatically on first startup when
+`SENTENCE_PROVIDER=croissant` (~870MB, cached in the `ollama-data` volume —
+later restarts just do a quick local check, not a re-download). Claude-only
+users pay no cost for this: the pull is skipped entirely when
+`SENTENCE_PROVIDER` isn't `croissant`.
+
+CroissantLLM is a small (1.3B parameter) open bilingual French/English model —
+expect noticeably lower sentence quality than Claude, and slower generation on
+CPU (fine here since generation happens in the background, not on the user's
+click path).
+
 ## Importing words
 
-Words are bulk-imported from a CSV file — there's no add-word UI. The CSV
-needs a header row with a `word` column and an optional `translation` column
-(rows without a translation get one filled in automatically the first time a
-sample sentence is generated for that word).
+Words are bulk-imported from a CSV file — there's no add-word UI. Translations
+are supplied at import time (e.g. filled in a spreadsheet beforehand), not
+generated, so the CSV **requires** both a `word` column and a `translation`
+column; rows missing either are skipped.
 
 ```csv
 word,translation
 maison,house
 chat,cat
-manger
 ```
 
 Import via:
@@ -56,13 +79,15 @@ set `PIPER_MODEL` accordingly (see below).
 A background job (`CardBufferService`) keeps ~10 sample sentences (with
 audio) generated ahead of demand for every imported word, calling:
 
-- `SentenceGenerationService` (Claude API) for the sentence + missing
-  translation
+- `SentenceGenerationService` for the sentence text — either
+  `ClaudeSentenceGenerationService` or `CroissantSentenceGenerationService`,
+  selected at runtime by the `SENTENCE_PROVIDER` env var (`claude` or
+  `croissant`, via `@ConditionalOnProperty` so only one bean is ever active)
 - `TextToSpeechService` (Piper sidecar) for the audio
 
-Both are defined as interfaces specifically so the provider can be swapped
-later without touching the rest of the app — add a new `@Service`
-implementation and point Spring at it.
+Both are interfaces specifically so a provider can be swapped without
+touching the rest of the app — add a new `@Service` implementation, gate it
+with `@ConditionalOnProperty`, and add the config it needs.
 
 ## API
 
@@ -75,8 +100,10 @@ implementation and point Spring at it.
 
 | Variable | Description |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Claude API key |
+| `SENTENCE_PROVIDER` | `claude` (default) or `croissant` |
+| `ANTHROPIC_API_KEY` | Claude API key (only when `SENTENCE_PROVIDER=claude`) |
 | `ANTHROPIC_MODEL` | Model id (default `claude-opus-4-8`) |
+| `OLLAMA_MODEL` | Ollama model tag (only when `SENTENCE_PROVIDER=croissant`) |
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Postgres credentials |
 | `BUFFER_SIZE` | Target sentences generated ahead per word (default 10) |
 | `BUFFER_BATCH` | Words processed per scheduler tick (default 3) |
@@ -95,6 +122,6 @@ docker compose pull
 docker compose up -d
 ```
 
-`postgres` always comes from the official Docker Hub image; only
-`backend`/`piper` are pulled from GHCR.
+`postgres` and `ollama` always come from their official Docker Hub images;
+only `backend`/`piper` are pulled from GHCR.
 # language-cards

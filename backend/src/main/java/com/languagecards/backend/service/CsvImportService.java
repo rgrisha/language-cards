@@ -13,9 +13,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Bulk-imports words from a CSV file. Expects a header row with a "word" column and an
- * optional "translation" column (rows with no translation get one filled in later by
- * {@link CardBufferService} when it first generates a sentence for that word).
+ * Bulk-imports words from a CSV file. Requires a header row with both a "word" column
+ * and a "translation" column — translations are supplied at import time (e.g. filled in
+ * a spreadsheet beforehand), not generated.
  */
 @Service
 public class CsvImportService {
@@ -37,6 +37,12 @@ public class CsvImportService {
         int imported = 0;
         try (CSVParser parser = CSVParser.parse(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8), format)) {
+            boolean hasTranslationColumn = parser.getHeaderNames().stream()
+                    .anyMatch(h -> h.equalsIgnoreCase("translation"));
+            if (!hasTranslationColumn) {
+                throw new IllegalArgumentException("CSV must include a 'translation' column");
+            }
+
             for (CSVRecord record : parser) {
                 if (!record.isSet("word")) {
                     continue;
@@ -46,12 +52,15 @@ public class CsvImportService {
                     continue;
                 }
                 text = text.trim();
-                if (wordRepository.existsByLanguageAndText(language, text)) {
+
+                String translation = record.isSet("translation") ? record.get("translation") : null;
+                if (translation == null || translation.isBlank()) {
                     continue;
                 }
-                String translation = record.isSet("translation") ? record.get("translation") : null;
-                if (translation != null && translation.isBlank()) {
-                    translation = null;
+                translation = translation.trim();
+
+                if (wordRepository.existsByLanguageAndText(language, text)) {
+                    continue;
                 }
 
                 Word word = new Word();
