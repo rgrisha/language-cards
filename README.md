@@ -112,7 +112,7 @@ with `@ConditionalOnProperty`, and add the config it needs.
 
 ## Deployment (local machine pulling prebuilt images)
 
-On push to `main`, GitHub Actions builds the `backend` and `piper` images and
+On push to `master`, GitHub Actions builds the `backend` and `piper` images and
 publishes them to `ghcr.io/<you>/language-cards-{backend,piper}:latest`. On
 the machine that runs the app:
 
