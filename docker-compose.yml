@@ -1,23 +1,21 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:18
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-language_cards}
-      POSTGRES_USER: ${POSTGRES_USER:-language_cards}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-language_cards}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   piper:
-    build:
-      context: ./piper
-    image: ${IMAGE_NAMESPACE:-language-cards}-piper:latest
+    #build:
+    #  context: ./piper
+    image: ${IMAGE_NAMESPACE:-local}/language-cards-piper:latest
     restart: unless-stopped
 
   ollama:
@@ -42,11 +40,11 @@ services:
         fi
         wait
 
-  backend:
+  language-cards-backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    image: ${IMAGE_NAMESPACE:-language-cards}-backend:latest
+    image: ${IMAGE_NAMESPACE:-local}/language-cards-backend:latest
     restart: unless-stopped
     depends_on:
       postgres:
@@ -56,9 +54,9 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB:-language_cards}
-      DB_USER: ${POSTGRES_USER:-language_cards}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      DB_NAME: language_cards
+      DB_USER: language_cards
+      DB_PASSWORD: ${LANGUAGE_CARDS_DB_PASSWORD}
       PIPER_BASE_URL: http://piper:5000
       SENTENCE_PROVIDER: ${SENTENCE_PROVIDER:-claude}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
@@ -66,11 +64,14 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-hf.co/croissantllm/CroissantLLMChat-v0.1-GGUF:Q4_K_M}
       AUDIO_PATH: /data/audio
     volumes:
-      - audio-data:/data/audio
-    ports:
-      - "${HOST_PORT:-8080}:8080"
+      - language-audio-data:/data/audio
+
 
 volumes:
   postgres-data:
-  audio-data:
+  	driver: local
+  language-audio-data:
+  	driver: local
   ollama-data:
+  	driver: local
+
