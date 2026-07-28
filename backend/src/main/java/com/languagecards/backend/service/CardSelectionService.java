@@ -34,6 +34,7 @@ public class CardSelectionService {
     }
 
     public CardResponse nextCard(String language) {
+
         Word word = wordRepository.findNextCandidate(language, cooldown)
                 .orElseThrow(() -> new NoSuchElementException(
                         "No ready card for language '" + language + "' yet — content may still be generating"));
