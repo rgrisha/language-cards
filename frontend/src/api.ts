@@ -6,7 +6,9 @@ export interface Card {
 }
 
 export async function fetchNextCard(language: string): Promise<Card> {
-  const response = await fetch(`/api/cards/next?language=${encodeURIComponent(language)}`);
+  const response = await fetch(
+    `${import.meta.env.BASE_URL}api/cards/next?language=${encodeURIComponent(language)}`,
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch next card: ${response.status}`);
   }

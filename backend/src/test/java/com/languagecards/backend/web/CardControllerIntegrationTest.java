@@ -61,7 +61,7 @@ class CardControllerIntegrationTest {
                 .andExpect(jsonPath("$.word").value("chat"))
                 .andExpect(jsonPath("$.translationEn").value("cat"))
                 .andExpect(jsonPath("$.sentenceText").value("Le chat dort sur le canapé."))
-                .andExpect(jsonPath("$.audioUrl").value("/api/audio/" + audioFile.getId()));
+                .andExpect(jsonPath("$.audioUrl").value("api/audio/" + audioFile.getId()));
     }
 
     @Test

@@ -18,3 +18,5 @@ frontend/dist/
 # Data
 data/
 audio-files/
+
+nginx/

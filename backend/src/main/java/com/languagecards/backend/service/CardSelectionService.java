@@ -46,7 +46,9 @@ public class CardSelectionService {
 
         wordRepository.markShown(word.getId());
 
+        // Relative (no leading slash) so it works unmodified under any reverse-proxy
+        // path prefix — the frontend resolves it against its own known base URL.
         return new CardResponse(word.getText(), word.getTranslationEn(), sentence.getText(),
-                "/api/audio/" + audioFile.getId());
+                "api/audio/" + audioFile.getId());
     }
 }

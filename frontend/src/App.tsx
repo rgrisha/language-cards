@@ -46,7 +46,7 @@ export default function App() {
 
           <p style={{ fontStyle: "italic" }}>{card.sentenceText}</p>
 
-          <audio ref={audioRef} src={card.audioUrl} autoPlay />
+          <audio ref={audioRef} src={`${import.meta.env.BASE_URL}${card.audioUrl}`} autoPlay />
           <div style={{ marginTop: "1rem" }}>
             <button onClick={handlePlay}>Play again</button>
             <button onClick={handleNext} style={{ marginLeft: "1rem" }}>
