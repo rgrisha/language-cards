@@ -19,9 +19,12 @@ jobs:
           - name: backend
             context: .
             dockerfile: backend/Dockerfile
+            build-args: |
+              CONTEXT_PATH=/language-cards
           - name: piper
             context: ./piper
             dockerfile: piper/Dockerfile
+            build-args: ""
     steps:
       - uses: actions/checkout@v4
 
@@ -52,3 +55,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build-args }}

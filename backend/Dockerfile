@@ -1,6 +1,6 @@
 # Build context is expected to be the repository root (see docker-compose.yml).
 
-FROM node:20-alpine AS frontend-build
+FROM node:24-alpine AS frontend-build
 # e.g. "/language-cards" when served behind a reverse-proxy path prefix, empty for root.
 ARG CONTEXT_PATH=
 WORKDIR /frontend
