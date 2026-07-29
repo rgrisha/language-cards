@@ -64,6 +64,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: ${OLLAMA_MODEL:-hf.co/croissantllm/CroissantLLMChat-v0.1-GGUF:Q4_K_M}
+      SENTENCE_TRANSLATION_PROVIDER: ${SENTENCE_TRANSLATION_PROVIDER:-croissant}
       AUDIO_PATH: /data/audio
       # Must match the build arg above — changing it requires a rebuild, not just a restart.
       CONTEXT_PATH: ${CONTEXT_PATH:-}

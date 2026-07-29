@@ -91,6 +91,17 @@ Both are interfaces specifically so a provider can be swapped without
 touching the rest of the app — add a new `@Service` implementation, gate it
 with `@ConditionalOnProperty`, and add the config it needs.
 
+The English translation of the sentence itself (as opposed to the word) is
+generated lazily — the first time a sentence without a stored translation is
+served, not up front — via `SentenceTranslationService`, either
+`CroissantSentenceTranslationService` or
+`GoogleUnofficialSentenceTranslationService`, selected by the
+`SENTENCE_TRANSLATION_PROVIDER` env var (`croissant` or `google-unofficial`).
+`GoogleUnofficialSentenceTranslationService` calls Google Translate's free,
+undocumented web endpoint — no API key needed, but it's unsupported and may
+be rate-limited or blocked without notice, so treat it as a personal/low-volume
+option, not a production one.
+
 ## API
 
 - `GET /api/cards/next?language=fr` — next card `{ word, translationEn,
@@ -106,6 +117,7 @@ with `@ConditionalOnProperty`, and add the config it needs.
 | `ANTHROPIC_API_KEY` | Claude API key (only when `SENTENCE_PROVIDER=claude`) |
 | `ANTHROPIC_MODEL` | Model id (default `claude-opus-4-8`) |
 | `OLLAMA_MODEL` | Ollama model tag (only when `SENTENCE_PROVIDER=croissant`) |
+| `SENTENCE_TRANSLATION_PROVIDER` | `croissant` (default) or `google-unofficial` |
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Postgres credentials |
 | `BUFFER_SIZE` | Target sentences generated ahead per word (default 10) |
 | `BUFFER_BATCH` | Words processed per scheduler tick (default 3) |

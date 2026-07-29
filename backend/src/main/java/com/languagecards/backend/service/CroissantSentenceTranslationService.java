@@ -1,6 +1,7 @@
 package com.languagecards.backend.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -10,9 +11,10 @@ import java.util.Map;
 /**
  * Translates sample sentences into English using the same self-hosted CroissantLLM (via Ollama)
  * that CroissantSentenceGenerationService uses, regardless of which provider generated the
- * sentence itself.
+ * sentence itself. Enabled with app.sentence-translation-provider=croissant (the default).
  */
 @Service
+@ConditionalOnProperty(prefix = "app", name = "sentence-translation-provider", havingValue = "croissant", matchIfMissing = true)
 public class CroissantSentenceTranslationService implements SentenceTranslationService {
 
     private final RestClient restClient;
