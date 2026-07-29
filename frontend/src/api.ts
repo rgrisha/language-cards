@@ -2,6 +2,7 @@ export interface Card {
   word: string;
   translationEn: string | null;
   sentenceText: string;
+  sentenceTranslatedEn: string | null;
   audioUrl: string;
 }
 

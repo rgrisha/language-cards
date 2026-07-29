@@ -4,11 +4,13 @@ import { usePrefetchQueue } from "./usePrefetchQueue";
 export default function App() {
   const [language, setLanguage] = useState("fr");
   const [revealed, setRevealed] = useState(false);
+  const [sentenceRevealed, setSentenceRevealed] = useState(false);
   const { card, next, error } = usePrefetchQueue(language);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     setRevealed(false);
+    setSentenceRevealed(false);
   }, [card]);
 
   const handleNext = () => {
@@ -45,6 +47,10 @@ export default function App() {
           </button>
 
           <p style={{ fontStyle: "italic" }}>{card.sentenceText}</p>
+
+          <button onClick={() => setSentenceRevealed((r) => !r)} style={{ marginBottom: "1rem" }}>
+            {sentenceRevealed ? card.sentenceTranslatedEn ?? "(no translation yet)" : "Reveal sentence translation"}
+          </button>
 
           <audio ref={audioRef} src={`${import.meta.env.BASE_URL}${card.audioUrl}`} autoPlay />
           <div style={{ marginTop: "1rem" }}>

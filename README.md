@@ -29,6 +29,8 @@ docker compose up --build
 
 The app is served at `http://localhost:8080`.
 
+To start frontend locally, run `npm i` first time, then `npm run dev`
+
 ### Using CroissantLLM instead of Claude
 
 Set `SENTENCE_PROVIDER=croissant` in `.env` (no `ANTHROPIC_API_KEY` needed) and

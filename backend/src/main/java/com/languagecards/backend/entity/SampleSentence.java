@@ -17,6 +17,9 @@ public class SampleSentence {
     @Column(nullable = false, columnDefinition = "text")
     private String text;
 
+    @Column(name = "translated_en", columnDefinition = "text")
+    private String translatedEn;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -45,6 +48,14 @@ public class SampleSentence {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getTranslatedEn() {
+        return translatedEn;
+    }
+
+    public void setTranslatedEn(String translatedEn) {
+        this.translatedEn = translatedEn;
     }
 
     public Instant getCreatedAt() {
